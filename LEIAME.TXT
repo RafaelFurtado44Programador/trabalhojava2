@@ -45,12 +45,12 @@
    Ou, manualmente:
 
        mkdir bin
-       javac -encoding UTF-8 -d bin src\avaliador\estruturas\*.java src\avaliador\nucleo\*.java src\avaliador\app\*.java
+       javac -encoding UTF-8 -d bin src\*.java
 
    --- Linux / macOS ------------------------------------------------------
 
        mkdir -p bin
-       javac -encoding UTF-8 -d bin $(find src -name "*.java")
+       javac -encoding UTF-8 -d bin src/*.java
 
    Os arquivos .class sao gerados na pasta "bin".
 
@@ -66,7 +66,7 @@
 
    Ou, em qualquer sistema:
 
-       java -cp bin avaliador.app.Principal
+       java -cp bin Main
 
    O programa abre um menu com as opcoes:
 
@@ -82,7 +82,7 @@
    A expressao tambem pode ser passada como argumento. O programa avalia,
    imprime o resultado e encerra:
 
-       java -cp bin avaliador.app.Principal "(2+5*8)/(4+3)"
+       java -cp bin Main "(2+5*8)/(4+3)"
 
    Observacao: no Windows, coloque a expressao entre aspas se ela contiver
    parenteses, para que o interpretador de comandos nao os consuma.
@@ -162,37 +162,43 @@
 8. ORGANIZACAO DOS ARQUIVOS
 ---------------------------------------------------------------------------
 
+   O programa e formado por SETE classes, todas no diretorio "src", sem
+   uso de pacotes.
+
    trabalhojava2/
    |
-   +-- DOCUMENTACAO.md          especificacao de requisitos e arquitetura
-   +-- LEIAME.TXT               este arquivo
-   +-- compilar.bat             script de compilacao (Windows)
-   +-- executar.bat             script de execucao (Windows)
+   +-- DOCUMENTACAO.md      especificacao de requisitos e arquitetura
+   +-- LEIAME.TXT           este arquivo
+   +-- compilar.bat         script de compilacao (Windows)
+   +-- executar.bat         script de execucao (Windows)
    |
-   +-- src/avaliador/
+   +-- src/
        |
-       +-- estruturas/          estruturas de dados proprias
-       |   +-- No.java                   no de encadeamento
-       |   +-- Pilha.java                pilha LIFO encadeada
-       |   +-- Fila.java                 fila FIFO encadeada
-       |   +-- EstruturaVaziaException.java
+       +-- No.java                  no de encadeamento (celula)
+       +-- Pilha.java               pilha LIFO encadeada
+       +-- Fila.java                fila FIFO encadeada
        |
-       +-- nucleo/              regra de negocio
-       |   +-- TipoToken.java            operando / operador / parenteses
-       |   +-- Associatividade.java      esquerda / direita
-       |   +-- Operador.java             os cinco operadores e suas regras
-       |   +-- Token.java                simbolo + posicao na expressao
-       |   +-- AnalisadorLexico.java     etapa 1: texto -> tokens
-       |   +-- ValidadorExpressao.java   etapa 2: validacao sintatica
-       |   +-- ResultadoValidacao.java   resposta do validador
-       |   +-- ConversorPosFixa.java     etapa 3: infixa -> pos-fixa
-       |   +-- AvaliadorPosFixa.java     etapa 4: pos-fixa -> valor
-       |   +-- AvaliadorExpressoes.java  fachada do sistema
-       |   +-- ExpressaoInvalidaException.java
+       +-- ValidadorPosFixa.java    etapa 1: validacao sintatica
+       +-- ConversorPosFixa.java    etapa 2: infixa -> pos-fixa
+       +-- AvaliadorPosFixa.java    etapa 3: pos-fixa -> valor numerico
        |
-       +-- app/                 camada de apresentacao
-           +-- Principal.java            menu de console
-           +-- TestesAutomatizados.java  bateria de testes
+       +-- Main.java                menu, orquestracao e bateria de testes
+
+   FLUXO DO PROGRAMA
+
+       texto digitado
+            |
+            |  ValidadorPosFixa.validar()      usa Pilha<Integer>
+            v
+       expressao aprovada
+            |
+            |  ConversorPosFixa.converter()    usa Pilha<Character>
+            v
+       Fila<Character> em ordem pos-fixa
+            |
+            |  AvaliadorPosFixa.avaliar()      usa Pilha<Double>
+            v
+       valor numerico
 
 
 9. OBSERVACAO SOBRE AS ESTRUTURAS DE DADOS
@@ -202,9 +208,14 @@
    biblioteca Java foi utilizada. Nao ha Stack, ArrayList, LinkedList nem
    similares em nenhum ponto do codigo.
 
-   A pilha e a fila usadas no processamento foram implementadas do zero,
-   por encadeamento simples, no pacote avaliador.estruturas, e sao
-   genericas, servindo tanto para guardar tokens quanto valores numericos.
+   A pilha e a fila foram implementadas do zero, por encadeamento simples
+   sobre a celula No, e sao genericas. Cada etapa as usa com um tipo
+   diferente:
+
+       ValidadorPosFixa    Pilha<Integer>      posicao dos "(" em aberto
+       ConversorPosFixa    Pilha<Character>    operadores a espera
+       AvaliadorPosFixa    Pilha<Double>       valores parciais
+       (entre as etapas)   Fila<Character>     expressao em pos-fixa
 
    As unicas classes da biblioteca Java utilizadas sao:
 

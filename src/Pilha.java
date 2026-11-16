@@ -1,5 +1,3 @@
-package avaliador.estruturas;
-
 public class Pilha<T> {
     private No<T> topo;
     private int tamanho;
@@ -16,7 +14,7 @@ public class Pilha<T> {
 
     public T desempilhar() {
         if (estaVazia()) {
-            throw new EstruturaVaziaException("Tentativa de desempilhar de uma pilha vazia.");
+            throw new IllegalStateException("Tentativa de desempilhar de uma pilha vazia.");
         }
         T valor = topo.getValor();
         topo = topo.getProximo();
@@ -26,7 +24,7 @@ public class Pilha<T> {
 
     public T espiar() {
         if (estaVazia()) {
-            throw new EstruturaVaziaException("Tentativa de consultar o topo de uma pilha vazia.");
+            throw new IllegalStateException("Tentativa de consultar o topo de uma pilha vazia.");
         }
         return topo.getValor();
     }

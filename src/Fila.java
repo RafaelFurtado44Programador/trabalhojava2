@@ -1,5 +1,3 @@
-package avaliador.estruturas;
-
 public class Fila<T> {
     private No<T> inicio;
     private No<T> fim;
@@ -24,7 +22,7 @@ public class Fila<T> {
 
     public T desenfileirar() {
         if (estaVazia()) {
-            throw new EstruturaVaziaException("Tentativa de desenfileirar de uma fila vazia.");
+            throw new IllegalStateException("Tentativa de desenfileirar de uma fila vazia.");
         }
         T valor = inicio.getValor();
         inicio = inicio.getProximo();
@@ -37,7 +35,7 @@ public class Fila<T> {
 
     public T primeiro() {
         if (estaVazia()) {
-            throw new EstruturaVaziaException("Tentativa de consultar o inicio de uma fila vazia.");
+            throw new IllegalStateException("Tentativa de consultar o inicio de uma fila vazia.");
         }
         return inicio.getValor();
     }

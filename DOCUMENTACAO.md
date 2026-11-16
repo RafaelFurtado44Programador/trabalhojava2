@@ -72,8 +72,7 @@ Resultado:       6
 | RNF02 | **Não é permitido o uso de estruturas de dados prontas da biblioteca Java** (`Stack`, `ArrayList`, `LinkedList` ou similares). Todas as estruturas e funções utilizadas foram implementadas neste trabalho. |
 | RNF03 | As estruturas devem ser genéricas e reaproveitáveis. |
 | RNF04 | Cada etapa do processamento deve residir em uma classe própria, com responsabilidade única. |
-| RNF05 | O código deve ser documentado e legível. |
-| RNF06 | O processamento deve ser linear no tamanho da expressão. |
+| RNF05 | O processamento deve ser linear no tamanho da expressão. |
 
 ### 2.3 Regras de precedência e associatividade
 
@@ -106,90 +105,69 @@ A ^ B ^ C   equivale a   A ^ (B ^ C)      associatividade à direita
 
 ## 3. Arquitetura do programa
 
-O programa está dividido em três pacotes, segundo o princípio de separação de
-responsabilidades.
+O programa é formado por **sete classes**, todas no diretório `src`, sem uso de
+pacotes. Três delas são as estruturas de dados genéricas e três são as etapas do
+processamento; a sétima é o ponto de entrada.
 
 ```
-avaliador
+src/
 │
-├── estruturas        estruturas de dados genéricas, de uso geral
-│   ├── No                      nó de encadeamento
-│   ├── Pilha                   pilha LIFO encadeada
-│   ├── Fila                    fila FIFO encadeada
-│   └── EstruturaVaziaException
+├── No.java                 nó de encadeamento (célula)
+├── Pilha.java              pilha LIFO encadeada
+├── Fila.java               fila FIFO encadeada
 │
-├── nucleo            regra de negócio: as quatro etapas do processamento
-│   ├── TipoToken               enumeração: operando, operador, parênteses
-│   ├── Associatividade         enumeração: esquerda, direita
-│   ├── Operador                catálogo dos cinco operadores + regra de cálculo
-│   ├── Token                   unidade léxica + posição na expressão
-│   ├── AnalisadorLexico        etapa 1: texto  -> fila de tokens
-│   ├── ValidadorExpressao      etapa 2: validação sintática
-│   ├── ResultadoValidacao      resposta do validador
-│   ├── ConversorPosFixa        etapa 3: infixa -> pós-fixa
-│   ├── AvaliadorPosFixa        etapa 4: pós-fixa -> valor numérico
-│   ├── AvaliadorExpressoes     fachada que encadeia as quatro etapas
-│   └── ExpressaoInvalidaException
+├── ValidadorPosFixa.java   etapa 1: validação sintática da expressão infixa
+├── ConversorPosFixa.java   etapa 2: conversão infixa -> pós-fixa
+├── AvaliadorPosFixa.java   etapa 3: cálculo do valor da forma pós-fixa
 │
-└── app               camada de apresentação
-    ├── Principal               menu de console / linha de comando
-    └── TestesAutomatizados     bateria de testes de aceitação
+└── Main.java               menu de console, orquestração e bateria de testes
 ```
+
+A expressão trafega entre as etapas como **cadeia de caracteres** na entrada e
+como **`Fila<Character>`** depois da conversão. Não há classe de token: cada
+símbolo é o próprio `char`, o que mantém o programa enxuto e dispensa classes
+auxiliares.
 
 ### 3.1 Fluxo de processamento
 
 ```
    cadeia de caracteres  "(2+5*8)/(4+3)"
             │
-            │  AnalisadorLexico.analisar()
+            │  ValidadorPosFixa.validar()        ← usa Pilha<Integer>
             ▼
-   Fila<Token> na ordem infixa
+   true  (ou false + mensagem + posição do erro)
             │
-            │  ValidadorExpressao.validar()
+            │  ConversorPosFixa.converter()      ← usa Pilha<Character>
             ▼
-   ResultadoValidacao  (válida / inválida + posição)
+   Fila<Character> na ordem pós-fixa    2 5 8 * + 4 3 + /
             │
-            │  ConversorPosFixa.converter()        ← usa Pilha<Token>
-            ▼
-   Fila<Token> na ordem pós-fixa
-            │
-            │  AvaliadorPosFixa.avaliar()          ← usa Pilha<Double>
+            │  AvaliadorPosFixa.avaliar()        ← usa Pilha<Double>
             ▼
    valor numérico  6
 ```
 
-A classe `AvaliadorExpressoes` é a fachada: ela encadeia as quatro etapas e
-guarda os resultados intermediários, de modo que a camada de apresentação
-possa exibir a forma pós-fixa junto com o resultado sem conhecer os detalhes
-internos.
+`Main` é quem encadeia as três etapas, no método `avaliarCompleto`.
 
 ### 3.2 Responsabilidade de cada classe
 
 | Classe | Responsabilidade |
 |--------|------------------|
-| `No` | Armazenar um valor e a referência ao próximo nó. |
-| `Pilha` | Operações `empilhar`, `desempilhar`, `espiar`, `estaVazia`, `tamanho`. |
-| `Fila` | Operações `enfileirar`, `desenfileirar`, `primeiro`, `estaVazia`, `tamanho`, `copiar`. |
-| `TipoToken` | Classificar o símbolo em operando, operador ou parêntese. |
-| `Associatividade` | Representar o sentido de associação de um operador. |
-| `Operador` | Guardar símbolo, precedência, associatividade e a regra de cálculo de cada operação. |
-| `Token` | Representar um símbolo reconhecido junto com a sua posição no texto original. |
-| `AnalisadorLexico` | Quebrar o texto em tokens e rejeitar caracteres fora do alfabeto. |
-| `ValidadorExpressao` | Verificar a boa formação da sequência de tokens. |
-| `ResultadoValidacao` | Transportar o veredito do validador, com mensagem e posição. |
-| `ConversorPosFixa` | Aplicar o algoritmo do pátio de manobras. |
-| `AvaliadorPosFixa` | Calcular o valor da expressão pós-fixa. |
-| `AvaliadorExpressoes` | Encadear as etapas e expor uma interface única. |
-| `Principal` | Interação com o usuário pelo console. |
-| `TestesAutomatizados` | Executar e relatar os casos de teste. |
+| `No<T>` | Armazenar um valor e a referência ao próximo nó. É a célula usada pela pilha e pela fila. |
+| `Pilha<T>` | Disciplina LIFO: `empilhar`, `desempilhar`, `espiar`, `estaVazia`, `tamanho`, `limpar`. |
+| `Fila<T>` | Disciplina FIFO: `enfileirar`, `desenfileirar`, `primeiro`, `estaVazia`, `tamanho`, `limpar`, `copiar`. |
+| `ValidadorPosFixa` | Varre a expressão infixa, rejeita caracteres fora do alfabeto e verifica a boa formação da sequência. Guarda a mensagem e a posição do erro. Expõe também os testes de classificação `ehOperando` e `ehOperador`, usados pelas outras classes. |
+| `ConversorPosFixa` | Aplica o algoritmo do pátio de manobras. Concentra as regras de precedência (`precedencia`) e de associatividade (`associaDireita`). |
+| `AvaliadorPosFixa` | Calcula o valor da forma pós-fixa. Concentra a aritmética de cada operador (`aplicar`) e a formatação do resultado (`formatar`). |
+| `Main` | Menu de console, orquestração das três etapas, apresentação dos erros e bateria de 43 testes. |
 
 ---
 
 ## 4. Estruturas de dados implementadas
 
 Nenhuma estrutura pronta da biblioteca Java foi utilizada. As duas estruturas
-abaixo foram construídas do zero, por encadeamento simples, e são genéricas
-(`<T>`), de modo que servem tanto para guardar `Token` quanto `Double`.
+abaixo foram construídas do zero, por encadeamento simples sobre a célula `No`,
+e são genéricas (`<T>`), de modo que servem para guardar `Character`, `Integer`
+e `Double` conforme a etapa.
 
 ### 4.1 Pilha — `Pilha<T>`
 
@@ -208,8 +186,13 @@ topo ──► [ * ] ──► [ + ] ──► [ ( ] ──► null
 | `estaVazia()` | O(1) |
 | `tamanho()` | O(1) |
 
-**Onde é usada:** na pilha de operadores do conversor, na pilha de parênteses
-do validador e na pilha de valores do avaliador.
+**Onde é usada:**
+
+| Etapa | Tipo | Para quê |
+|-------|------|----------|
+| `ValidadorPosFixa` | `Pilha<Integer>` | guardar a posição de cada `(` em aberto |
+| `ConversorPosFixa` | `Pilha<Character>` | guardar operadores e parênteses à espera |
+| `AvaliadorPosFixa` | `Pilha<Double>` | guardar os valores parciais do cálculo |
 
 ### 4.2 Fila — `Fila<T>`
 
@@ -231,12 +214,12 @@ inicio ──► [ 2 ] ──► [ 5 ] ──► [ 8 ] ──► null
 | `tamanho()` | O(1) |
 | `copiar()` | O(n) |
 
-**Onde é usada:** para transportar a sequência de tokens entre as etapas, tanto
-na ordem infixa quanto na pós-fixa.
+**Onde é usada:** como saída do conversor e entrada do avaliador, na forma
+`Fila<Character>`.
 
 O método `copiar()` existe para que uma fila possa ser percorrida sem ser
-consumida — é o que permite exibir a forma infixa e a pós-fixa depois de a
-expressão já ter sido avaliada.
+consumida — é o que permite exibir a forma pós-fixa junto com o resultado, já
+que a avaliação consome a fila que recebe.
 
 ---
 
@@ -244,13 +227,14 @@ expressão já ter sido avaliada.
 
 ### 5.1 Validação sintática — autômato de dois estados
 
-O validador percorre a fila de tokens uma única vez, mantendo um estado que
-indica o que pode legitimamente aparecer em seguida:
+`ValidadorPosFixa` percorre a expressão uma única vez, mantendo uma variável
+booleana `esperandoOperando` que indica o que pode legitimamente aparecer em
+seguida:
 
 | Estado | O que é aceito |
 |--------|----------------|
-| `ESPERANDO_OPERANDO` | um algarismo ou `(` |
-| `ESPERANDO_OPERADOR` | um operador ou `)` |
+| `esperandoOperando = true` | um algarismo ou `(` |
+| `esperandoOperando = false` | um operador ou `)` |
 
 **Transições:**
 
@@ -258,42 +242,46 @@ indica o que pode legitimamente aparecer em seguida:
           algarismo                    operador
    ┌──────────────────────┐    ┌──────────────────────┐
    │                      ▼    │                      ▼
-ESPERANDO_OPERANDO     ESPERANDO_OPERADOR
+ esperando            esperando
+ OPERANDO             OPERADOR
    ▲                      │    ▲                      │
    └──────────────────────┘    └──────────────────────┘
             '('                         ')'
 ```
 
-- `(` mantém o estado em `ESPERANDO_OPERANDO` e **empilha** o parêntese.
-- `)` leva a `ESPERANDO_OPERADOR` e **desempilha** o parêntese correspondente;
+- `(` mantém o estado em `esperandoOperando` e **empilha** a sua posição.
+- `)` leva a `esperandoOperador` e **desempilha** o parêntese correspondente;
   se a pilha estiver vazia, há um fecha sem abre.
 
-**Condição de aceitação:** ao final da varredura, o autômato precisa estar em
-`ESPERANDO_OPERADOR` (a expressão terminou com um operando ou um `)`) **e** a
-pilha de parênteses precisa estar vazia.
+**Condição de aceitação:** ao final da varredura, `esperandoOperando` precisa ser
+`false` (a expressão terminou com um operando ou um `)`) **e** a pilha de
+parênteses precisa estar vazia.
 
 Esse mecanismo único detecta de uma só vez os três problemas exigidos pelo
 enunciado:
 
 | Problema | Como é detectado |
 |----------|------------------|
-| Operandos em excesso ou em falta | estado incompatível ao ler um operando, ou término em `ESPERANDO_OPERANDO` |
+| Operandos em excesso ou em falta | estado incompatível ao ler um operando, ou término com `esperandoOperando = true` |
 | Operadores em excesso ou em falta | estado incompatível ao ler um operador |
 | Parênteses desbalanceados | pilha vazia ao fechar, ou pilha não vazia ao término |
-| Posicionamento incorreto | é exatamente o que o estado verifica, a cada token |
+| Posicionamento incorreto | é exatamente o que o estado verifica, a cada símbolo |
+
+Guardar a **posição** de cada `(` na pilha, em vez de guardar apenas uma
+contagem, é o que permite apontar exatamente qual parêntese ficou em aberto.
 
 O exemplo `( 3 ( + 5 ) )` citado no enunciado é rejeitado na **posição 3**:
-depois de ler o algarismo `3` o autômato está em `ESPERANDO_OPERADOR`, e um
+depois de ler o algarismo `3` o autômato espera um operador, e um
 abre-parênteses não é aceito nesse estado — falta um operador antes dele.
 
 ### 5.2 Conversão infixa → pós-fixa — pátio de manobras
 
-Percorre os tokens da esquerda para a direita, apoiado em uma pilha de
-operadores e produzindo uma fila de saída:
+`ConversorPosFixa` percorre os caracteres da esquerda para a direita, apoiado em
+uma pilha de operadores e produzindo uma fila de saída:
 
-| Token lido | Ação |
+| Símbolo lido | Ação |
 |-----------|------|
-| operando | vai direto para a fila de saída |
+| algarismo | vai direto para a fila de saída |
 | operador | enquanto o topo da pilha for um operador que deva sair antes, desempilha para a saída; em seguida empilha o operador lido |
 | `(` | empilha, funcionando como marcador de fronteira |
 | `)` | desempilha para a saída até encontrar o `(` correspondente, que é descartado |
@@ -316,7 +304,7 @@ e `2^3^2` ser lido como `2^(3^2) = 512`.
 
 **Traçado de `(2+5*8)/(4+3)`:**
 
-| Passo | Token | Pilha de operadores | Fila de saída |
+| Passo | Símbolo | Pilha de operadores | Fila de saída |
 |-------|-------|--------------------|----------------|
 | 1 | `(` | `(` | |
 | 2 | `2` | `(` | `2` |
@@ -335,11 +323,11 @@ e `2^3^2` ser lido como `2^(3^2) = 512`.
 
 ### 5.3 Avaliação da forma pós-fixa
 
-Varredura única apoiada em uma pilha de valores:
+`AvaliadorPosFixa` faz uma varredura única apoiada em uma pilha de valores:
 
 ```
-para cada token da fila pós-fixa:
-    se for operando  -> empilha o seu valor
+para cada símbolo da fila pós-fixa:
+    se for algarismo -> empilha o seu valor
     se for operador  -> desempilha dois valores,
                         aplica a operação,
                         empilha o resultado
@@ -354,7 +342,7 @@ mais de um, sobraram operandos sem operador.
 
 **Traçado de `2 5 8 * + 4 3 + /`:**
 
-| Token | Operação | Pilha de valores |
+| Símbolo | Operação | Pilha de valores |
 |-------|----------|------------------|
 | `2` | empilha | `2` |
 | `5` | empilha | `2 5` |
@@ -372,9 +360,15 @@ mais de um, sobraram operandos sem operador.
 
 ## 6. Tratamento de erros
 
-Todos os erros são sinalizados por `ExpressaoInvalidaException`, que carrega a
-mensagem e, quando aplicável, a posição do caractere problemático. A camada de
-apresentação usa essa posição para desenhar uma seta sob o ponto do erro:
+O erro de sintaxe não usa exceção: `ValidadorPosFixa.validar` devolve `false` e
+guarda a causa em `getMensagem()` e o ponto em `getPosicao()`. Já os erros que
+só aparecem durante o cálculo são sinalizados por exceções da própria biblioteca
+Java — `ArithmeticException` para divisão por zero e exponenciação indefinida,
+`IllegalArgumentException` para expressão malformada e `IllegalStateException`
+para acesso a estrutura vazia.
+
+`Main` usa a posição guardada pelo validador para desenhar uma seta sob o ponto
+do erro:
 
 ```
   ERRO: Abre-parenteses em posicao indevida: era esperado um operador
@@ -387,19 +381,19 @@ apresentação usa essa posição para desenhar uma seta sob o ponto do erro:
 
 ### Catálogo de erros detectados
 
-| Situação | Exemplo | Etapa |
-|----------|---------|-------|
-| Caractere fora do alfabeto | `1+2$3` | léxica |
-| Expressão vazia | `` ou `   ` | léxica |
-| Operando em posição indevida | `12` | validação |
-| Operador em posição indevida | `1++2`, `+1` | validação |
-| Abre-parênteses em posição indevida | `(3(+5))`, `(1+2)(3+4)` | validação |
-| Fecha-parênteses em posição indevida | `()`, `(1+)` | validação |
-| Fecha sem abre | `1+2)` | validação |
-| Abre sem fecha | `(1+2` | validação |
-| Expressão incompleta | `1+` | validação |
-| Divisão por zero | `1/0` | avaliação |
-| Exponenciação indefinida | `0^(0-1)` | avaliação |
+| Situação | Exemplo | Onde |
+|----------|---------|------|
+| Caractere fora do alfabeto | `1+2$3` | validador |
+| Expressão vazia | `` ou `   ` | validador |
+| Operando em posição indevida | `12` | validador |
+| Operador em posição indevida | `1++2`, `+1` | validador |
+| Abre-parênteses em posição indevida | `(3(+5))`, `(1+2)(3+4)` | validador |
+| Fecha-parênteses em posição indevida | `()`, `(1+)` | validador |
+| Fecha sem abre | `1+2)` | validador |
+| Abre sem fecha | `(1+2` | validador |
+| Expressão incompleta | `1+` | validador |
+| Divisão por zero | `1/0` | avaliador |
+| Exponenciação indefinida | `0^(0-1)` | avaliador |
 
 ---
 
@@ -409,23 +403,22 @@ Sendo **n** o número de caracteres da expressão:
 
 | Etapa | Tempo | Espaço |
 |-------|-------|--------|
-| Análise léxica | O(n) | O(n) |
 | Validação sintática | O(n) | O(n) no pior caso |
 | Conversão para pós-fixa | O(n) | O(n) |
 | Avaliação da pós-fixa | O(n) | O(n) |
 | **Total** | **O(n)** | **O(n)** |
 
-Cada etapa percorre a sequência de tokens uma única vez, e todas as operações
-de pilha e de fila custam tempo constante. O pior caso de espaço ocorre em
-expressões profundamente aninhadas, como `((((1+2))))`, em que a pilha chega a
-guardar O(n) parênteses simultaneamente.
+Cada etapa percorre a expressão uma única vez, e todas as operações de pilha e
+de fila custam tempo constante. O pior caso de espaço ocorre em expressões
+profundamente aninhadas, como `((((1+2))))`, em que a pilha chega a guardar
+O(n) parênteses simultaneamente.
 
 ---
 
 ## 8. Testes
 
 A opção **4** do menu executa 43 casos de teste automatizados, organizados em
-cinco grupos.
+cinco grupos. Os testes ficam no próprio `Main`.
 
 ### 8.1 Conversão — tabelas do enunciado
 

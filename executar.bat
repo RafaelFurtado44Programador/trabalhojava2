@@ -13,4 +13,4 @@ if not exist bin (
     exit /b 1
 )
 
-java -cp bin avaliador.app.Principal %*
+java -cp bin Main %*
