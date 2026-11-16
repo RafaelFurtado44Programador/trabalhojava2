@@ -8,23 +8,7 @@ import avaliador.nucleo.AvaliadorExpressoes;
 import avaliador.nucleo.ExpressaoInvalidaException;
 import avaliador.nucleo.ResultadoValidacao;
 
-/**
- * Camada de apresentacao: menu de console que da acesso as funcionalidades do
- * avaliador.
- *
- * A leitura da entrada usa BufferedReader, da biblioteca de entrada e saida,
- * e nao qualquer estrutura de dados pronta -- todas as estruturas usadas no
- * processamento foram implementadas no pacote avaliador.estruturas.
- *
- * O programa tambem aceita a expressao como argumento de linha de comando,
- * caso em que a avalia, imprime o resultado e encerra:
- *
- *     java -cp bin avaliador.app.Principal "2+5*8/(4+3)"
- *
- * Trabalho 2 - Lab. AED I - CEFET-MG Campus Timoteo
- */
 public class Principal {
-
     private final AvaliadorExpressoes avaliador = new AvaliadorExpressoes();
     private final BufferedReader entrada =
             new BufferedReader(new InputStreamReader(System.in));
@@ -44,9 +28,6 @@ public class Principal {
         programa.executar();
     }
 
-    /**
-     * Laco principal do menu.
-     */
     private void executar() {
         cabecalho();
 
@@ -113,11 +94,6 @@ public class Principal {
         processarExpressao(expressao);
     }
 
-    /**
-     * Executa o fluxo completo sobre uma expressao e imprime o relatorio.
-     *
-     * @param expressao expressao infixa
-     */
     private void processarExpressao(String expressao) {
         System.out.println();
         try {
@@ -160,10 +136,6 @@ public class Principal {
         }
     }
 
-    /**
-     * Imprime a causa do erro e, quando possivel, aponta graficamente o ponto
-     * da expressao em que ele ocorreu.
-     */
     private void relatarErro(String expressao, ExpressaoInvalidaException e) {
         System.out.println("  ERRO: " + e.getMessage());
         if (e.temPosicao() && expressao != null) {
@@ -171,9 +143,6 @@ public class Principal {
         }
     }
 
-    /**
-     * Desenha uma seta sob o caractere problematico.
-     */
     private void apontarPosicao(String expressao, int posicao) {
         if (expressao == null || posicao < 1 || posicao > expressao.length()) {
             return;
@@ -229,12 +198,6 @@ public class Principal {
         System.out.println("-----------------------------------------------------------");
     }
 
-    /**
-     * Le uma linha da entrada padrao.
-     *
-     * @param rotulo texto exibido antes da leitura
-     * @return linha lida, ou cadeia vazia em caso de fim de entrada
-     */
     private String lerLinha(String rotulo) {
         System.out.print(rotulo);
         System.out.flush();

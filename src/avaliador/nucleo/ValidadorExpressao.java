@@ -3,49 +3,12 @@ package avaliador.nucleo;
 import avaliador.estruturas.Fila;
 import avaliador.estruturas.Pilha;
 
-/**
- * Segunda etapa do processamento: verifica se a sequencia de tokens forma uma
- * expressao infixa sintaticamente valida.
- *
- * A verificacao e feita por um automato de dois estados que percorre a fila de
- * tokens uma unica vez, custo O(n):
- *
- *   ESPERANDO_OPERANDO -- so pode vir um algarismo ou um '('
- *   ESPERANDO_OPERADOR -- so pode vir um operador ou um ')'
- *
- * Transicoes:
- *   algarismo -> ESPERANDO_OPERADOR
- *   '('       -> ESPERANDO_OPERANDO   (e empilha o parentese)
- *   operador  -> ESPERANDO_OPERANDO
- *   ')'       -> ESPERANDO_OPERADOR   (e desempilha o parentese correspondente)
- *
- * Ao final, a expressao so e valida se o automato parar em ESPERANDO_OPERADOR
- * (ou seja, terminou com um operando ou um fecha-parenteses) e se a pilha de
- * parenteses estiver vazia.
- *
- * Esse automato detecta de uma vez os tres problemas exigidos pelo enunciado:
- * numero incorreto de operandos, de operadores e de parenteses, alem da
- * posicao incorreta de qualquer um deles. O exemplo do enunciado, ( 3 ( + 5 ) ),
- * e rejeitado porque o segundo '(' aparece quando o automato esta em
- * ESPERANDO_OPERADOR.
- *
- * Trabalho 2 - Lab. AED I - CEFET-MG Campus Timoteo
- */
 public class ValidadorExpressao {
-
-    /** Estados do automato de validacao. */
     private enum Estado {
         ESPERANDO_OPERANDO,
         ESPERANDO_OPERADOR
     }
 
-    /**
-     * Verifica a validade sintatica da expressao representada pela fila de
-     * tokens. A fila recebida nao e consumida.
-     *
-     * @param tokens fila produzida pelo AnalisadorLexico
-     * @return resultado da validacao, com mensagem e posicao em caso de erro
-     */
     public ResultadoValidacao validar(Fila<Token> tokens) {
         if (tokens == null || tokens.estaVazia()) {
             return ResultadoValidacao.invalida("A expressao esta vazia.");
@@ -61,7 +24,6 @@ public class ValidadorExpressao {
             ultimo = token;
 
             switch (token.getTipo()) {
-
                 case OPERANDO:
                     if (estado != Estado.ESPERANDO_OPERANDO) {
                         return ResultadoValidacao.invalida(

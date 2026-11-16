@@ -3,31 +3,11 @@ package avaliador.app;
 import avaliador.nucleo.AvaliadorExpressoes;
 import avaliador.nucleo.ExpressaoInvalidaException;
 
-/**
- * Bateria de testes de aceitacao do avaliador.
- *
- * Os casos de conversao reproduzem as duas tabelas do enunciado do trabalho.
- * Como o programa so aceita operandos de um algarismo, as variaveis das
- * tabelas foram substituidas pela sua posicao no alfabeto:
- *
- *   A=1  B=2  C=3  D=4  E=5  F=6  G=7  H=8
- *
- * A substituicao preserva integralmente a ESTRUTURA da conversao, que e o que
- * os casos pretendem verificar.
- *
- * Trabalho 2 - Lab. AED I - CEFET-MG Campus Timoteo
- */
 public class TestesAutomatizados {
-
     private int total;
     private int aprovados;
     private final AvaliadorExpressoes avaliador = new AvaliadorExpressoes();
 
-    /**
-     * Executa todos os grupos de teste e imprime o relatorio.
-     *
-     * @return true se todos os casos passaram
-     */
     public boolean executar() {
         total = 0;
         aprovados = 0;
@@ -57,9 +37,6 @@ public class TestesAutomatizados {
         return aprovados == total;
     }
 
-    /**
-     * Primeira tabela de conversao do enunciado.
-     */
     private void testarConversaoTabela1() {
         titulo("Conversao infixa -> pos-fixa (tabela 1 do enunciado)");
 
@@ -73,9 +50,6 @@ public class TestesAutomatizados {
         conversao("1-2/(3*4^5)", "1 2 3 4 5 ^ * / -", "A-B/(C*D^E)  ->  ABCDE^*/-");
     }
 
-    /**
-     * Segunda tabela do enunciado: o papel dos parenteses.
-     */
     private void testarConversaoTabela2() {
         titulo("Conversao infixa -> pos-fixa (tabela 2 do enunciado)");
 
@@ -84,9 +58,6 @@ public class TestesAutomatizados {
         conversao("1+2*3", "1 2 3 * +", "A+B*C equivale a A+(B*C)");
     }
 
-    /**
-     * Regras de precedencia e de associatividade descritas no enunciado.
-     */
     private void testarPrecedenciaEAssociatividade() {
         titulo("Precedencia e associatividade");
 
@@ -101,9 +72,6 @@ public class TestesAutomatizados {
         valor("8/4/2", 1.0, "(8/4)/2 = 1, e nao 8/(4/2) = 4");
     }
 
-    /**
-     * Avaliacao numerica, incluindo o exemplo citado no enunciado.
-     */
     private void testarAvaliacaoNumerica() {
         titulo("Avaliacao numerica");
 
@@ -122,9 +90,6 @@ public class TestesAutomatizados {
         valor("(3-5)^2", 4.0, "base negativa com expoente par");
     }
 
-    /**
-     * Expressoes que devem ser recusadas pelo validador.
-     */
     private void testarExpressoesInvalidas() {
         titulo("Deteccao de expressoes invalidas");
 
@@ -142,10 +107,6 @@ public class TestesAutomatizados {
         invalida("(1+2)(3+4)", "falta operador entre os grupos");
         invalida("1/0", "divisao por zero");
     }
-
-    // ------------------------------------------------------------------
-    //  Metodos de apoio
-    // ------------------------------------------------------------------
 
     private void titulo(String texto) {
         System.out.println();
