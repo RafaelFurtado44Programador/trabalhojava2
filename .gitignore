@@ -1,0 +1,28 @@
+# Pastas de ferramentas de IA
+.claude/
+
+# Arquivos compilados do Java
+*.class
+bin/
+build/
+out/
+target/
+
+# Empacotamento
+*.jar
+*.war
+*.zip
+
+# Ambientes de desenvolvimento
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+nbproject/private/
+
+# Sistema operacional
+Thumbs.db
+desktop.ini
+.DS_Store

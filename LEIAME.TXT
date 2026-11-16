@@ -1,0 +1,239 @@
+===========================================================================
+  AVALIADOR DE EXPRESSOES MATEMATICAS
+  Trabalho 2 - Laboratorio de Algoritmos e Estruturas de Dados I
+  Engenharia da Computacao - CEFET-MG, Campus Timoteo
+  Prof. Luciano Moreira
+===========================================================================
+
+
+1. O QUE O PROGRAMA FAZ
+---------------------------------------------------------------------------
+
+   Recebe uma expressao aritmetica na forma infixa (a forma usual, com o
+   operador entre os dois operandos), verifica se ela e sintaticamente
+   valida, converte para a forma pos-fixa (notacao polonesa inversa) e
+   calcula o seu valor numerico.
+
+   Exemplo:
+
+       Entrada:         (2+5*8)/(4+3)
+       Forma pos-fixa:  2 5 8 * + 4 3 + /
+       Resultado:       6
+
+
+2. REQUISITOS
+---------------------------------------------------------------------------
+
+   Java JDK 8 ou superior (testado com JDK 21).
+
+   Para conferir se o Java esta instalado, abra o terminal e digite:
+
+       java -version
+       javac -version
+
+
+3. COMO COMPILAR
+---------------------------------------------------------------------------
+
+   Abra o terminal dentro da pasta do trabalho (a pasta que contem este
+   arquivo e a pasta "src").
+
+   --- Windows (Prompt de Comando ou PowerShell) -------------------------
+
+       compilar.bat
+
+   Ou, manualmente:
+
+       mkdir bin
+       javac -encoding UTF-8 -d bin src\avaliador\estruturas\*.java src\avaliador\nucleo\*.java src\avaliador\app\*.java
+
+   --- Linux / macOS ------------------------------------------------------
+
+       mkdir -p bin
+       javac -encoding UTF-8 -d bin $(find src -name "*.java")
+
+   Os arquivos .class sao gerados na pasta "bin".
+
+
+4. COMO EXECUTAR
+---------------------------------------------------------------------------
+
+   --- Modo interativo (menu) ---------------------------------------------
+
+   Windows:
+
+       executar.bat
+
+   Ou, em qualquer sistema:
+
+       java -cp bin avaliador.app.Principal
+
+   O programa abre um menu com as opcoes:
+
+       1 - Avaliar uma expressao
+       2 - Converter para a forma pos-fixa
+       3 - Verificar apenas a validade sintatica
+       4 - Executar a bateria de testes
+       5 - Ajuda
+       0 - Sair
+
+   --- Modo direto (linha de comando) -------------------------------------
+
+   A expressao tambem pode ser passada como argumento. O programa avalia,
+   imprime o resultado e encerra:
+
+       java -cp bin avaliador.app.Principal "(2+5*8)/(4+3)"
+
+   Observacao: no Windows, coloque a expressao entre aspas se ela contiver
+   parenteses, para que o interpretador de comandos nao os consuma.
+
+
+5. O QUE PODE SER DIGITADO
+---------------------------------------------------------------------------
+
+   OPERANDOS    algarismos de 0 a 9, um unico algarismo por operando
+
+   OPERADORES   +   adicao
+                -   subtracao
+                *   multiplicacao
+                /   divisao
+                ^   exponenciacao
+
+   AGRUPAMENTO  (   )
+
+   Espacos em branco sao ignorados: "2 + 3" e "2+3" sao equivalentes.
+
+   ORDEM DE PRECEDENCIA, da maior para a menor:
+
+       1o)  ^           associativo a DIREITA   ->  2^3^2 = 2^(3^2) = 512
+       2o)  *  e  /     associativos a esquerda ->  8/4/2 = (8/4)/2 = 1
+       3o)  +  e  -     associativos a esquerda ->  8-3-2 = (8-3)-2 = 3
+
+
+6. EXEMPLOS
+---------------------------------------------------------------------------
+
+   VALIDOS
+
+       2+3*4                 ->  14           precedencia padrao
+       (2+3)*4               ->  20           parenteses alteram a ordem
+       2^3^2                 ->  512          exponenciacao a direita
+       (2+5*8)/(4+3)         ->  6
+       9/2                   ->  4.5          resultado fracionario
+       1^2*3-4+5/6/(7+8)     ->  forma pos-fixa  1 2 ^ 3 * 4 - 5 6 / 7 8 + / +
+
+   INVALIDOS
+
+       (3(+5))               parenteses em posicao indevida
+       1++2                  dois operadores seguidos
+       12                    dois operandos sem operador entre eles
+       (1+2                  parenteses em aberto
+       1+2)                  fecha-parenteses sem abertura
+       ()                    parenteses vazios
+       1+2$3                 caractere fora do alfabeto
+       1/0                   divisao por zero
+
+   Quando a expressao e recusada, o programa informa a causa e aponta a
+   posicao exata do problema:
+
+       ERRO: Abre-parenteses em posicao indevida: era esperado um operador
+             ou um fecha-parenteses. Falta um operador antes do parenteses.
+
+         (3(+5))
+           ^
+         posicao 3
+
+
+7. LIMITACOES CONHECIDAS
+---------------------------------------------------------------------------
+
+   - Operandos sao algarismos isolados. "12" e lido como dois operandos
+     consecutivos e, portanto, recusado.
+
+   - As cinco operacoes sao binarias, conforme o enunciado. Nao existe
+     operador unario, de modo que "-3" e "2*-3" sao invalidos. Para obter
+     um valor negativo, escreva "(0-3)".
+
+   - Os calculos usam ponto flutuante de dupla precisao (double), de modo
+     que divisoes nao exatas podem apresentar arredondamento na ultima
+     casa decimal.
+
+
+8. ORGANIZACAO DOS ARQUIVOS
+---------------------------------------------------------------------------
+
+   trabalhojava2/
+   |
+   +-- DOCUMENTACAO.md          especificacao de requisitos e arquitetura
+   +-- LEIAME.TXT               este arquivo
+   +-- compilar.bat             script de compilacao (Windows)
+   +-- executar.bat             script de execucao (Windows)
+   |
+   +-- src/avaliador/
+       |
+       +-- estruturas/          estruturas de dados proprias
+       |   +-- No.java                   no de encadeamento
+       |   +-- Pilha.java                pilha LIFO encadeada
+       |   +-- Fila.java                 fila FIFO encadeada
+       |   +-- EstruturaVaziaException.java
+       |
+       +-- nucleo/              regra de negocio
+       |   +-- TipoToken.java            operando / operador / parenteses
+       |   +-- Associatividade.java      esquerda / direita
+       |   +-- Operador.java             os cinco operadores e suas regras
+       |   +-- Token.java                simbolo + posicao na expressao
+       |   +-- AnalisadorLexico.java     etapa 1: texto -> tokens
+       |   +-- ValidadorExpressao.java   etapa 2: validacao sintatica
+       |   +-- ResultadoValidacao.java   resposta do validador
+       |   +-- ConversorPosFixa.java     etapa 3: infixa -> pos-fixa
+       |   +-- AvaliadorPosFixa.java     etapa 4: pos-fixa -> valor
+       |   +-- AvaliadorExpressoes.java  fachada do sistema
+       |   +-- ExpressaoInvalidaException.java
+       |
+       +-- app/                 camada de apresentacao
+           +-- Principal.java            menu de console
+           +-- TestesAutomatizados.java  bateria de testes
+
+
+9. OBSERVACAO SOBRE AS ESTRUTURAS DE DADOS
+---------------------------------------------------------------------------
+
+   Conforme exigido pelo enunciado, NENHUMA estrutura de dados pronta da
+   biblioteca Java foi utilizada. Nao ha Stack, ArrayList, LinkedList nem
+   similares em nenhum ponto do codigo.
+
+   A pilha e a fila usadas no processamento foram implementadas do zero,
+   por encadeamento simples, no pacote avaliador.estruturas, e sao
+   genericas, servindo tanto para guardar tokens quanto valores numericos.
+
+   As unicas classes da biblioteca Java utilizadas sao:
+
+       java.io.BufferedReader        leitura do teclado
+       java.io.InputStreamReader     leitura do teclado
+       java.io.IOException           tratamento de falha de leitura
+       java.lang.Math                Math.pow e Math.round
+       java.lang.String              cadeia de caracteres
+       java.lang.StringBuilder       montagem de texto para exibicao
+
+   Nenhuma delas e uma estrutura de dados de colecao.
+
+
+10. BATERIA DE TESTES
+---------------------------------------------------------------------------
+
+   A opcao 4 do menu executa 43 casos de teste automatizados, divididos em
+   cinco grupos:
+
+       - conversao infixa -> pos-fixa (tabela 1 do enunciado)   6 casos
+       - conversao infixa -> pos-fixa (tabela 2 do enunciado)   3 casos
+       - precedencia e associatividade                          8 casos
+       - avaliacao numerica                                    13 casos
+       - deteccao de expressoes invalidas                      13 casos
+
+   Todos os 43 casos passam. As conversoes reproduzem exatamente as duas
+   tabelas do enunciado, com as variaveis A, B, C... substituidas pela sua
+   posicao no alfabeto (A=1, B=2, ..., H=8), ja que o programa so aceita
+   operandos de um algarismo. A substituicao preserva a estrutura da
+   conversao, que e o que os casos verificam.
+
+===========================================================================
